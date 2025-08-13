@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up - Personal Finance Tracker{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center min-vh-100 align-items-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg border-0">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <i class="fas fa-rocket text-primary" style="font-size: 3rem;"></i>
+                    <h2 class="fw-bold mt-3">Join Today</h2>
+                    <p class="text-muted">Create your free account and start tracking your finances</p>
+                </div>
+                
+                <form id="registerForm">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="fas fa-user text-muted"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0" id="username" name="username" 
+                                   placeholder="Choose a username" required>
+                        </div>
+                        <small class="text-muted">This will be your unique login name</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email Address</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="fas fa-envelope text-muted"></i>
+                            </span>
+                            <input type="email" class="form-control border-start-0" id="email" name="email" 
+                                   placeholder="your@email.com" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="fas fa-lock text-muted"></i>
+                            </span>
+                            <input type="password" class="form-control border-start-0" id="password" name="password" 
+                                   placeholder="At least 6 characters" required minlength="6">
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="password-strength mt-2">
+                            <div class="progress" style="height: 4px;">
+                                <div class="progress-bar" id="passwordStrength" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <small id="passwordHelp" class="text-muted">Password strength: <span id="strengthText">Too short</span></small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="confirmPassword" class="form-label">Confirm Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="fas fa-check text-muted"></i>
+                            </span>
+                            <input type="password" class="form-control border-start-0" id="confirmPassword" name="confirmPassword" 
+                                   placeholder="Repeat your password" required>
+                        </div>
+                        <small id="confirmHelp" class="text-muted"></small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100 py-3 mb-3" id="registerBtn" disabled>
+                        <i class="fas fa-rocket me-2"></i>Create My Account
+                    </button>
+                </form>
+                
+                <div class="text-center">
+                    <p class="text-muted mb-3">Already have an account?</p>
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-sign-in-alt me-2"></i>Sign In Instead
+                    </a>
+                </div>
+                
+                <!-- Benefits reminder -->
+                <div class="mt-4 p-3 bg-light rounded">
+                    <h6 class="fw-bold mb-2">What you get:</h6>
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">
+                                <i class="fas fa-check text-success me-1"></i> Unlimited transactions<br>
+                                <i class="fas fa-check text-success me-1"></i> Visual reports
+                            </small>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">
+                                <i class="fas fa-check text-success me-1"></i> Data export<br>
+                                <i class="fas fa-check text-success me-1"></i> Secure & private
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Toggle password visibility
+    document.getElementById('togglePassword').addEventListener('click', function() {
+        const password = document.getElementById('password');
+        const icon = this.querySelector('i');
+        
+        if (password.type === 'password') {
+            password.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            password.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    });
+    
+    // Password strength checker
+    document.getElementById('password').addEventListener('input', function() {
+        const password = this.value;
+        const strengthBar = document.getElementById('passwordStrength');
+        const strengthText = document.getElementById('strengthText');
+        
+        let strength = 0;
+        let text = 'Too short';
+        let color = 'bg-danger';
+        
+        if (password.length >= 6) {
+            strength = 25;
+            text = 'Weak';
+            color = 'bg-warning';
+        }
+        if (password.length >= 8) {
+            strength = 50;
+            text = 'Fair';
+        }
+        if (password.length >= 10 && /[A-Z]/.test(password)) {
+            strength = 75;
+            text = 'Good';
+            color = 'bg-info';
+        }
+        if (password.length >= 12 && /[A-Z]/.test(password) && /[0-9]/.test(password)) {
+            strength = 100;
+            text = 'Strong';
+            color = 'bg-success';
+        }
+        
+        strengthBar.style.width = strength + '%';
+        strengthBar.className = 'progress-bar ' + color;
+        strengthText.textContent = text;
+        
+        checkFormValidity();
+    });
+    
+    // Confirm password checker
+    document.getElementById('confirmPassword').addEventListener('input', function() {
+        const password = document.getElementById('password').value;
+        const confirmPassword = this.value;
+        const helpText = document.getElementById('confirmHelp');
+        
+        if (confirmPassword === '') {
+            helpText.textContent = '';
+            helpText.className = 'text-muted';
+        } else if (password === confirmPassword) {
+            helpText.textContent = '✓ Passwords match';
+            helpText.className = 'text-success';
+        } else {
+            helpText.textContent = '✗ Passwords do not match';
+            helpText.className = 'text-danger';
+        }
+        
+        checkFormValidity();
+    });
+    
+    // Check form validity
+    function checkFormValidity() {
+        const username = document.getElementById('username').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const registerBtn = document.getElementById('registerBtn');
+        
+        const isValid = username.length >= 3 && 
+                       email.includes('@') && 
+                       password.length >= 6 && 
+                       password === confirmPassword;
+        
+        registerBtn.disabled = !isValid;
+    }
+    
+    // Handle form submission
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const button = document.getElementById('registerBtn');
+        const username = document.getElementById('username').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        
+        // Show loading state
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating Account...';
+        button.disabled = true;
+        
+        try {
+            const response = await fetch('/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: username,
+                    email: email,
+                    password: password
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                showSuccess(result.message + ' Redirecting to dashboard...');
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 2000);
+            } else {
+                showError(result.message);
+            }
+            
+        } catch (error) {
+            showError('Connection error. Please try again.');
+        } finally {
+            // Reset button
+            button.innerHTML = '<i class="fas fa-rocket me-2"></i>Create My Account';
+            button.disabled = false;
+            checkFormValidity(); // Re-check validity
+        }
+    });
+    
+    // Add real-time validation to all fields
+    ['username', 'email'].forEach(fieldId => {
+        document.getElementById(fieldId).addEventListener('input', checkFormValidity);
+    });
+</script>
+{% endblock %}

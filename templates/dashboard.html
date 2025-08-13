@@ -1,0 +1,532 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Personal Finance Tracker{% endblock %}
+
+{% block extra_css %}
+<style>
+.stats-card {
+    background: linear-gradient(135deg, var(--primary-color), #1d4ed8);
+    color: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    border: none;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
+}
+
+.income-card {
+    background: linear-gradient(135deg, var(--success-color), #059669);
+}
+
+.expense-card {
+    background: linear-gradient(135deg, var(--danger-color), #dc2626);
+}
+
+.balance-card {
+    background: linear-gradient(135deg, var(--warning-color), #d97706);
+}
+
+.transaction-item {
+    padding: 1.2rem;
+    border-radius: 12px;
+    margin-bottom: 0.8rem;
+    background: white;
+    border-left: 4px solid var(--primary-color);
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.transaction-item:hover {
+    transform: translateX(8px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.transaction-item.expense {
+    border-left-color: var(--danger-color);
+}
+
+.transaction-item.income {
+    border-left-color: var(--success-color);
+}
+
+.welcome-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.chart-container {
+    position: relative;
+    height: 280px;
+    width: 100%;
+}
+
+.category-legend {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.category-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.category-item:hover {
+    background: rgba(59, 130, 246, 0.1);
+    transform: translateX(5px);
+}
+
+.category-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 10px;
+    border: 2px solid rgba(255,255,255,0.3);
+}
+
+.enhanced-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.enhanced-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.enhanced-card .card-header {
+    background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+    border-bottom: 1px solid #e2e8f0;
+    padding: 1.5rem;
+}
+
+.btn-gradient {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    border: none;
+    border-radius: 25px;
+    padding: 12px 25px;
+    font-weight: 600;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.btn-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+    color: white;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+    border-radius: 15px;
+    border: 2px dashed #cbd5e1;
+}
+
+.stats-icon {
+    font-size: 2.5rem;
+    opacity: 0.7;
+    margin-bottom: 0.5rem;
+}
+
+.pulse-animation {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+.floating-element {
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Enhanced Welcome Section -->
+<div class="welcome-section floating-element">
+    <div class="row align-items-center">
+        <div class="col-lg-8">
+            <h1 class="fw-bold mb-2">Welcome back, {{ user.username }}! 👋</h1>
+            <p class="mb-0 opacity-90">Here's your financial overview for {{ current_month }} {{ current_year }}</p>
+        </div>
+        <div class="col-lg-4 text-lg-end">
+            <button class="btn btn-light btn-gradient" data-bs-toggle="modal" data-bs-target="#addTransactionModal">
+                <i class="fas fa-plus me-2"></i>Add Transaction
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced Summary Cards -->
+<div class="row mb-4">
+    <div class="col-lg-4 mb-3">
+        <div class="stats-card income-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 opacity-75">Total Income</h6>
+                    <h2 class="mb-0 fw-bold">${{ "%.2f"|format(monthly_summary.income) }}</h2>
+                </div>
+                <i class="fas fa-arrow-trend-up stats-icon"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4 mb-3">
+        <div class="stats-card expense-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 opacity-75">Total Expenses</h6>
+                    <h2 class="mb-0 fw-bold">${{ "%.2f"|format(monthly_summary.expenses) }}</h2>
+                </div>
+                <i class="fas fa-arrow-trend-down stats-icon"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4 mb-3">
+        <div class="stats-card balance-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 opacity-75">Net Balance</h6>
+                    <h2 class="mb-0 fw-bold">${{ "%.2f"|format(monthly_summary.balance) }}</h2>
+                </div>
+                <i class="fas fa-wallet stats-icon pulse-animation"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Dashboard Content -->
+<div class="row">
+    <!-- Left Column: Recent Transactions -->
+    <div class="col-lg-8">
+        <div class="enhanced-card mb-4">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-clock me-2 text-primary"></i>Recent Transactions
+                    </h5>
+                    <a href="{{ url_for('transactions') }}" class="btn btn-outline-primary btn-sm">
+                        View All <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if recent_transactions %}
+                    {% for transaction in recent_transactions %}
+                    <div class="transaction-item {{ transaction.transaction_type }}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    {% if transaction.transaction_type == 'income' %}
+                                        <i class="fas fa-plus-circle text-success fs-4"></i>
+                                    {% else %}
+                                        <i class="fas fa-minus-circle text-danger fs-4"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <strong class="d-block">{{ transaction.description }}</strong>
+                                    <div class="d-flex align-items-center mt-1">
+                                        <span class="badge rounded-pill me-2" 
+                                              style="background-color: {{ transaction.category_color }}; color: white;">
+                                            {{ transaction.category_name }}
+                                        </span>
+                                        <small class="text-muted">{{ transaction.date }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <strong class="fs-5 {% if transaction.transaction_type == 'income' %}text-success{% else %}text-danger{% endif %}">
+                                    {% if transaction.transaction_type == 'income' %}+{% else %}-{% endif %}${{ "%.2f"|format(transaction.amount) }}
+                                </strong>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-inbox text-muted" style="font-size: 4rem; margin-bottom: 1rem;"></i>
+                        <h5 class="text-muted mb-3">No transactions yet</h5>
+                        <p class="text-muted mb-4">Start tracking your finances by adding your first transaction!</p>
+                        <button class="btn btn-gradient" data-bs-toggle="modal" data-bs-target="#addTransactionModal">
+                            <i class="fas fa-plus me-2"></i>Add Your First Transaction
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Column: Spending Breakdown -->
+    <div class="col-lg-4">
+        <div class="enhanced-card">
+            <div class="card-header">
+                <h5 class="mb-0 fw-bold">
+                    <i class="fas fa-chart-pie me-2 text-primary"></i>Spending Breakdown
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if spending_by_category %}
+                    <div class="chart-container mb-3">
+                        <canvas id="spendingChart"></canvas>
+                    </div>
+                    
+                    <!-- Enhanced Category List -->
+                    <div class="category-legend">
+                        {% for category in spending_by_category %}
+                        <div class="category-item">
+                            <div class="d-flex align-items-center">
+                                <div class="category-dot" style="background-color: {{ category.color }};"></div>
+                                <span class="fw-500">{{ category.name }}</span>
+                            </div>
+                            <strong class="text-primary">${{ "%.2f"|format(category.total_amount) }}</strong>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-chart-pie text-muted" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <h6 class="text-muted mb-2">No expenses this month</h6>
+                        <p class="text-muted small mb-0">Add some expense transactions to see your spending breakdown</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced Add Transaction Modal -->
+<div class="modal fade" id="addTransactionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--primary-color), #1d4ed8); color: white; border-radius: 20px 20px 0 0;">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-plus-circle me-2"></i>Add New Transaction
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addTransactionForm">
+                <div class="modal-body" style="padding: 2rem;">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="transactionType" class="form-label fw-600">Transaction Type</label>
+                            <select class="form-control" id="transactionType" name="transaction_type" required style="border-radius: 10px;">
+                                <option value="">Select type</option>
+                                <option value="income">💰 Income</option>
+                                <option value="expense">💸 Expense</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="amount" class="form-label fw-600">Amount</label>
+                            <div class="input-group">
+                                <span class="input-group-text" style="background: var(--primary-color); color: white; border: none;">$</span>
+                                <input type="number" class="form-control" id="amount" name="amount" 
+                                       step="0.01" min="0" placeholder="0.00" required style="border-radius: 0 10px 10px 0;">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="categoryId" class="form-label fw-600">Category</label>
+                        <select class="form-control" id="categoryId" name="category_id" required style="border-radius: 10px;">
+                            <option value="">Select category</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label fw-600">Description</label>
+                        <input type="text" class="form-control" id="description" name="description" 
+                               placeholder="What was this transaction for?" required style="border-radius: 10px;">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="date" class="form-label fw-600">Date</label>
+                        <input type="date" class="form-control" id="date" name="date" required style="border-radius: 10px;">
+                    </div>
+                </div>
+                <div class="modal-footer" style="padding: 1.5rem 2rem; border: none;">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 25px;">Cancel</button>
+                    <button type="submit" class="btn btn-gradient" id="saveTransactionBtn">
+                        <i class="fas fa-save me-2"></i>Save Transaction
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden data for charts -->
+<div id="chart-data" style="display: none;">{{ spending_by_category | tojson | safe }}</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set today's date as default
+    document.getElementById('date').value = new Date().toISOString().split('T')[0];
+    
+    // Load categories when modal opens
+    document.getElementById('addTransactionModal').addEventListener('show.bs.modal', loadCategories);
+    
+    async function loadCategories() {
+        try {
+            const response = await fetch('/api/categories');
+            const categories = await response.json();
+            
+            const categorySelect = document.getElementById('categoryId');
+            categorySelect.innerHTML = '<option value="">Select category</option>';
+            
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.name;
+                categorySelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error loading categories:', error);
+        }
+    }
+    
+    // Handle form submission with enhanced feedback
+    document.getElementById('addTransactionForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const button = document.getElementById('saveTransactionBtn');
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData);
+        
+        // Enhanced loading state
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+        button.disabled = true;
+        button.style.background = '#6b7280';
+        
+        try {
+            const response = await fetch('/add_transaction', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                // Success feedback
+                button.innerHTML = '<i class="fas fa-check me-2"></i>Saved!';
+                button.style.background = '#10b981';
+                
+                setTimeout(() => {
+                    bootstrap.Modal.getInstance(document.getElementById('addTransactionModal')).hide();
+                    location.reload();
+                }, 1000);
+            } else {
+                throw new Error(result.message);
+            }
+            
+        } catch (error) {
+            // Error feedback
+            button.innerHTML = '<i class="fas fa-times me-2"></i>Failed';
+            button.style.background = '#ef4444';
+            
+            setTimeout(() => {
+                button.innerHTML = '<i class="fas fa-save me-2"></i>Save Transaction';
+                button.disabled = false;
+                button.style.background = '';
+            }, 2000);
+        }
+    });
+    
+    // Initialize chart if data exists
+    const chartDataElement = document.getElementById('chart-data');
+    if (chartDataElement) {
+        const spendingData = JSON.parse(chartDataElement.textContent);
+        
+        if (spendingData && spendingData.length > 0) {
+            createSpendingChart(spendingData);
+        }
+    }
+    
+    function createSpendingChart(data) {
+        const ctx = document.getElementById('spendingChart');
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.map(item => item.name),
+                    datasets: [{
+                        data: data.map(item => item.total_amount),
+                        backgroundColor: data.map(item => item.color),
+                        borderWidth: 3,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleColor: 'white',
+                            bodyColor: 'white',
+                            borderColor: '#3b82f6',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    const total = data.reduce((a, b) => a + b.total_amount, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return context.label + ': $' + context.parsed.toFixed(2) + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    },
+                    cutout: '60%'
+                }
+            });
+        }
+    }
+    
+    // Reset form when modal closes
+    document.getElementById('addTransactionModal').addEventListener('hidden.bs.modal', function() {
+        document.getElementById('addTransactionForm').reset();
+        document.getElementById('date').value = new Date().toISOString().split('T')[0];
+        
+        // Reset button state
+        const button = document.getElementById('saveTransactionBtn');
+        button.innerHTML = '<i class="fas fa-save me-2"></i>Save Transaction';
+        button.disabled = false;
+        button.style.background = '';
+    });
+});
+</script>
+{% endblock %}

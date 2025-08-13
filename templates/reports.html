@@ -1,0 +1,561 @@
+{% extends "base.html" %}
+
+{% block title %}Reports & Analytics - Personal Finance Tracker{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="fw-bold">
+                    <i class="fas fa-chart-bar me-2 text-primary"></i>Reports & Analytics
+                </h1>
+                <p class="text-muted mb-0">Analyze your spending patterns and financial trends</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary" onclick="exportReport()">
+                    <i class="fas fa-download me-2"></i>Export Report
+                </button>
+                <button class="btn btn-primary" onclick="refreshCharts()">
+                    <i class="fas fa-sync me-2"></i>Refresh Data
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Time Period Selector -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Time Period</label>
+                <select class="form-control" id="timePeriod">
+                    <option value="6">Last 6 Months</option>
+                    <option value="12" selected>Last 12 Months</option>
+                    <option value="24">Last 2 Years</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Start Date</label>
+                <input type="date" class="form-control" id="startDate">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">End Date</label>
+                <input type="date" class="form-control" id="endDate">
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-primary w-100" onclick="updateCharts()">
+                    <i class="fas fa-filter me-2"></i>Apply Filter
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-line text-primary fs-1 mb-3"></i>
+                <h3 class="mb-1" id="totalIncome">$0</h3>
+                <p class="text-muted mb-0">Total Income</p>
+                <small class="text-success" id="incomeChange">+0% from last period</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-line-down text-danger fs-1 mb-3"></i>
+                <h3 class="mb-1" id="totalExpenses">$0</h3>
+                <p class="text-muted mb-0">Total Expenses</p>
+                <small class="text-danger" id="expenseChange">+0% from last period</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-piggy-bank text-success fs-1 mb-3"></i>
+                <h3 class="mb-1" id="totalSavings">$0</h3>
+                <p class="text-muted mb-0">Net Savings</p>
+                <small class="text-info" id="savingsRate">0% savings rate</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-calculator text-warning fs-1 mb-3"></i>
+                <h3 class="mb-1" id="avgMonthly">$0</h3>
+                <p class="text-muted mb-0">Avg Monthly Expense</p>
+                <small class="text-muted" id="expenseStability">Stable spending</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 1 -->
+<div class="row mb-4">
+    <!-- Income vs Expenses Trend -->
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header bg-white border-bottom-0 py-3">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-area me-2 text-primary"></i>Income vs Expenses Trend
+                </h5>
+            </div>
+            <div class="card-body">
+                <div style="height: 300px;">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Spending Categories -->
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header bg-white border-bottom-0 py-3">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2 text-primary"></i>Top Categories
+                </h5>
+            </div>
+            <div class="card-body">
+                <div style="height: 250px;">
+                    <canvas id="categoriesChart"></canvas>
+                </div>
+                <div class="mt-3" id="categoryLegend">
+                    <!-- Category legend will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 2 -->
+<div class="row mb-4">
+    <!-- Monthly Breakdown -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-white border-bottom-0 py-3">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-alt me-2 text-primary"></i>Monthly Breakdown
+                </h5>
+            </div>
+            <div class="card-body">
+                <div style="height: 300px;">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Spending Patterns -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header bg-white border-bottom-0 py-3">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock me-2 text-primary"></i>Weekly Spending Pattern
+                </h5>
+            </div>
+            <div class="card-body">
+                <div style="height: 300px;">
+                    <canvas id="weeklyPatternChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Insights and Recommendations -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-white border-bottom-0 py-3">
+                <h5 class="mb-0">
+                    <i class="fas fa-lightbulb me-2 text-primary"></i>Financial Insights & Recommendations
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <h6 class="fw-bold text-success">
+                            <i class="fas fa-thumbs-up me-2"></i>What You're Doing Well
+                        </h6>
+                        <div id="positiveInsights">
+                            <div class="d-flex align-items-start mb-2">
+                                <i class="fas fa-check-circle text-success me-2 mt-1"></i>
+                                <span>Consistent income tracking shows good financial awareness</span>
+                            </div>
+                            <div class="d-flex align-items-start mb-2">
+                                <i class="fas fa-check-circle text-success me-2 mt-1"></i>
+                                <span>Regular transaction recording helps maintain accuracy</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <h6 class="fw-bold text-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Areas for Improvement
+                        </h6>
+                        <div id="improvementAreas">
+                            <div class="d-flex align-items-start mb-2">
+                                <i class="fas fa-arrow-up text-warning me-2 mt-1"></i>
+                                <span>Consider setting monthly budgets for better spending control</span>
+                            </div>
+                            <div class="d-flex align-items-start mb-2">
+                                <i class="fas fa-arrow-up text-warning me-2 mt-1"></i>
+                                <span>Try to increase your emergency fund savings</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Statistics Table -->
+<div class="card">
+    <div class="card-header bg-white border-bottom-0 py-3">
+        <h5 class="mb-0">
+            <i class="fas fa-table me-2 text-primary"></i>Detailed Monthly Statistics
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0 fw-600">Month</th>
+                        <th class="border-0 fw-600 text-end">Income</th>
+                        <th class="border-0 fw-600 text-end">Expenses</th>
+                        <th class="border-0 fw-600 text-end">Net</th>
+                        <th class="border-0 fw-600 text-end">Savings Rate</th>
+                        <th class="border-0 fw-600 text-center">Trend</th>
+                    </tr>
+                </thead>
+                <tbody id="monthlyStatsTable">
+                    {% for month_data in monthly_data %}
+                    <tr>
+                        <td class="py-3">
+                            <strong>{{ month_data.month }} {{ month_data.year }}</strong>
+                        </td>
+                        <td class="py-3 text-end">
+                            <span class="text-success fw-600">${{ "%.2f"|format(month_data.summary.income) }}</span>
+                        </td>
+                        <td class="py-3 text-end">
+                            <span class="text-danger fw-600">${{ "%.2f"|format(month_data.summary.expenses) }}</span>
+                        </td>
+                        <td class="py-3 text-end">
+                            <span class="{% if month_data.summary.balance >= 0 %}text-success{% else %}text-danger{% endif %} fw-600">
+                                ${{ "%.2f"|format(month_data.summary.balance) }}
+                            </span>
+                        </td>
+                        <td class="py-3 text-end">
+                            {% set savings_rate = (month_data.summary.balance / month_data.summary.income * 100) if month_data.summary.income > 0 else 0 %}
+                            <span class="{% if savings_rate >= 20 %}text-success{% elif savings_rate >= 10 %}text-warning{% else %}text-danger{% endif %} fw-600">
+                                {{ "%.1f"|format(savings_rate) }}%
+                            </span>
+                        </td>
+                        <td class="py-3 text-center">
+                            {% if month_data.summary.balance >= 0 %}
+                                <i class="fas fa-arrow-up text-success"></i>
+                            {% else %}
+                                <i class="fas fa-arrow-down text-danger"></i>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Set default dates
+    const today = new Date();
+    const sixMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 6, 1);
+    
+    document.getElementById('endDate').value = today.toISOString().split('T')[0];
+    document.getElementById('startDate').value = sixMonthsAgo.toISOString().split('T')[0];
+    
+    // Sample data for charts (in real app, this would come from the backend)
+    const monthlyData = {{ monthly_data | tojson | safe }};
+    
+    // Initialize charts
+    let trendChart = null;
+    let categoriesChart = null; 
+    let monthlyChart = null;
+    let weeklyPatternChart = null;
+    
+    function initializeCharts() {
+        createTrendChart();
+        createCategoriesChart();
+        createMonthlyChart();
+        createWeeklyPatternChart();
+        updateSummaryCards();
+    }
+    
+    function createTrendChart() {
+        const ctx = document.getElementById('trendChart').getContext('2d');
+        
+        const labels = monthlyData.map(item => item.month + ' ' + item.year);
+        const incomeData = monthlyData.map(item => item.summary.income);
+        const expenseData = monthlyData.map(item => item.summary.expenses);
+        
+        trendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Income',
+                        data: incomeData,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Expenses',
+                        data: expenseData,
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': $' + context.parsed.y.toFixed(2);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toFixed(0);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function createCategoriesChart() {
+        const ctx = document.getElementById('categoriesChart').getContext('2d');
+        
+        // Sample category data
+        const categoryData = [
+            { name: 'Food & Dining', amount: 850, color: '#ef4444' },
+            { name: 'Transportation', amount: 420, color: '#3b82f6' },
+            { name: 'Shopping', amount: 320, color: '#8b5cf6' },
+            { name: 'Entertainment', amount: 280, color: '#10b981' },
+            { name: 'Bills', amount: 1200, color: '#f59e0b' }
+        ];
+        
+        categoriesChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: categoryData.map(item => item.name),
+                datasets: [{
+                    data: categoryData.map(item => item.amount),
+                    backgroundColor: categoryData.map(item => item.color),
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                return context.label + ': $' + context.parsed.toFixed(2) + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Update category legend
+        updateCategoryLegend(categoryData);
+    }
+    
+    function updateCategoryLegend(categoryData) {
+        const legendContainer = document.getElementById('categoryLegend');
+        legendContainer.innerHTML = '';
+        
+        categoryData.forEach(category => {
+            const legendItem = document.createElement('div');
+            legendItem.className = 'd-flex justify-content-between align-items-center mb-2';
+            legendItem.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle me-2" style="width: 12px; height: 12px; background-color: ${category.color};"></div>
+                    <span class="small">${category.name}</span>
+                </div>
+                <strong class="small">$${category.amount.toFixed(2)}</strong>
+            `;
+            legendContainer.appendChild(legendItem);
+        });
+    }
+    
+    function createMonthlyChart() {
+        const ctx = document.getElementById('monthlyChart').getContext('2d');
+        
+        const labels = monthlyData.map(item => item.month);
+        const netData = monthlyData.map(item => item.summary.balance);
+        
+        monthlyChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Net Income',
+                    data: netData,
+                    backgroundColor: netData.map(value => value >= 0 ? '#10b981' : '#ef4444'),
+                    borderColor: netData.map(value => value >= 0 ? '#059669' : '#dc2626'),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Net: $' + context.parsed.y.toFixed(2);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toFixed(0);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function createWeeklyPatternChart() {
+        const ctx = document.getElementById('weeklyPatternChart').getContext('2d');
+        
+        // Sample weekly spending pattern data
+        const weeklyData = [1200, 800, 600, 900, 1500, 2200, 1800]; // Mon-Sun
+        const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        
+        weeklyPatternChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: daysOfWeek,
+                datasets: [{
+                    label: 'Average Spending',
+                    data: weeklyData,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#3b82f6',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function updateSummaryCards() {
+        const totalIncome = monthlyData.reduce((sum, month) => sum + month.summary.income, 0);
+        const totalExpenses = monthlyData.reduce((sum, month) => sum + month.summary.expenses, 0);
+        const totalSavings = totalIncome - totalExpenses;
+        const avgMonthlyExpense = totalExpenses / monthlyData.length;
+        const savingsRate = totalIncome > 0 ? (totalSavings / totalIncome * 100) : 0;
+        
+        document.getElementById('totalIncome').textContent = '$' + totalIncome.toFixed(2);
+        document.getElementById('totalExpenses').textContent = '$' + totalExpenses.toFixed(2);
+        document.getElementById('totalSavings').textContent = '$' + totalSavings.toFixed(2);
+        document.getElementById('avgMonthly').textContent = '$' + avgMonthlyExpense.toFixed(2);
+        document.getElementById('savingsRate').textContent = savingsRate.toFixed(1) + '% savings rate';
+    }
+    
+    function updateCharts() {
+        // In a real app, this would fetch new data based on the selected date range
+        showSuccess('Charts updated successfully!');
+    }
+    
+    function refreshCharts() {
+        // Refresh all charts with latest data
+        if (trendChart) trendChart.destroy();
+        if (categoriesChart) categoriesChart.destroy();
+        if (monthlyChart) monthlyChart.destroy();
+        if (weeklyPatternChart) weeklyPatternChart.destroy();
+        
+        initializeCharts();
+        showSuccess('Data refreshed successfully!');
+    }
+    
+    function exportReport() {
+        showSuccess('Report export feature coming soon!');
+    }
+    
+    // Initialize charts when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeCharts();
+    });
+</script>
+{% endblock %}

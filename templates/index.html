@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}Personal Finance Tracker - Take Control of Your Money{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="row align-items-center min-vh-100 py-5">
+    <div class="col-lg-6">
+        <h1 class="display-4 fw-bold text-primary mb-4">
+            Take Control of Your <span class="text-warning">Money</span>
+        </h1>
+        <p class="lead mb-4">
+            Track expenses, set budgets, and visualize your spending patterns with our intuitive personal finance tracker. 
+            Make informed financial decisions and achieve your money goals.
+        </p>
+        
+        <!-- Feature highlights -->
+        <div class="row mb-4">
+            <div class="col-sm-6 mb-3">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-chart-pie text-primary me-3 fs-4"></i>
+                    <div>
+                        <h6 class="mb-1">Visual Analytics</h6>
+                        <small class="text-muted">Beautiful charts and graphs</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 mb-3">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-shield-alt text-success me-3 fs-4"></i>
+                    <div>
+                        <h6 class="mb-1">Secure & Private</h6>
+                        <small class="text-muted">Your data stays protected</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 mb-3">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-mobile-alt text-info me-3 fs-4"></i>
+                    <div>
+                        <h6 class="mb-1">Mobile Friendly</h6>
+                        <small class="text-muted">Track anywhere, anytime</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 mb-3">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-download text-warning me-3 fs-4"></i>
+                    <div>
+                        <h6 class="mb-1">Export Data</h6>
+                        <small class="text-muted">Download as CSV anytime</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- CTA Buttons -->
+        <div class="d-flex gap-3 mb-4">
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-rocket me-2"></i>Get Started Free
+            </a>
+            <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-sign-in-alt me-2"></i>Sign In
+            </a>
+        </div>
+        
+        <p class="text-muted">
+            <i class="fas fa-check text-success me-1"></i> No credit card required
+            <i class="fas fa-check text-success me-1 ms-3"></i> Free forever
+        </p>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="text-center">
+            <!-- Dashboard Preview -->
+            <div class="card shadow-lg" style="transform: rotate(-2deg);">
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-4">
+                            <div class="stats-card income-card text-center">
+                                <h6 class="mb-1">Income</h6>
+                                <h4 class="mb-0">$3,500</h4>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stats-card expense-card text-center">
+                                <h6 class="mb-1">Expenses</h6>
+                                <h4 class="mb-0">$2,150</h4>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stats-card balance-card text-center">
+                                <h6 class="mb-1">Balance</h6>
+                                <h4 class="mb-0">$1,350</h4>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Fake chart -->
+                    <div class="bg-light rounded p-3 mb-3" style="height: 150px; position: relative;">
+                        <div class="position-absolute top-50 start-50 translate-middle">
+                            <i class="fas fa-chart-doughnut text-primary" style="font-size: 3rem;"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Fake transactions -->
+                    <div class="transaction-item expense">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>Grocery Shopping</strong>
+                                <small class="d-block text-muted">Food & Dining</small>
+                            </div>
+                            <div class="text-end">
+                                <strong class="text-danger">-$85.50</strong>
+                                <small class="d-block text-muted">Today</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="transaction-item income">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>Salary</strong>
+                                <small class="d-block text-muted">Income</small>
+                            </div>
+                            <div class="text-end">
+                                <strong class="text-success">+$3,500</strong>
+                                <small class="d-block text-muted">Yesterday</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<section class="py-5 bg-white rounded-4 shadow-sm">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="fw-bold">Everything You Need to Manage Money</h2>
+                <p class="text-muted">Powerful features designed to make personal finance simple and effective</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                             style="width: 64px; height: 64px;">
+                            <i class="fas fa-plus text-primary fs-4"></i>
+                        </div>
+                        <h5 class="fw-bold">Easy Transaction Entry</h5>
+                        <p class="text-muted">Quickly add income and expenses with our intuitive form. Categorize transactions for better organization.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                             style="width: 64px; height: 64px;">
+                            <i class="fas fa-chart-line text-success fs-4"></i>
+                        </div>
+                        <h5 class="fw-bold">Visual Reports</h5>
+                        <p class="text-muted">See your spending patterns with beautiful charts. Track trends and make data-driven financial decisions.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                             style="width: 64px; height: 64px;">
+                            <i class="fas fa-piggy-bank text-warning fs-4"></i>
+                        </div>
+                        <h5 class="fw-bold">Budget Tracking</h5>
+                        <p class="text-muted">Set spending limits for categories and monitor your progress. Stay on track with your financial goals.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5 mt-5">
+    <div class="text-center">
+        <h2 class="fw-bold mb-3">Ready to Take Control?</h2>
+        <p class="text-muted mb-4">Join thousands of users who are already managing their finances better.</p>
+        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-rocket me-2"></i>Start Your Financial Journey
+        </a>
+    </div>
+</section>
+{% endblock %}
